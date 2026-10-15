@@ -1,0 +1,11 @@
+Host: 26.6.2 arm64
+Policy before: exit=0 assessments enabled
+Sign: exit=0 /var/folders/4t/88rhgthx2j77b2kphf7d2r1m0000gn/T/trustme-disposable-9g0dl_qj/Disposable.app: replacing existing signature
+Set test quarantine: exit=0 
+Assess before: exit=1 /var/folders/4t/88rhgthx2j77b2kphf7d2r1m0000gn/T/trustme-disposable-9g0dl_qj/Disposable.app: internal error in Code Signing subsystem
+Remove outer test quarantine: exit=0 
+Read after: exit=1 xattr: /var/folders/4t/88rhgthx2j77b2kphf7d2r1m0000gn/T/trustme-disposable-9g0dl_qj/Disposable.app: No such xattr: com.apple.quarantine
+Verify after: exit=0 
+Assess after: exit=1 /var/folders/4t/88rhgthx2j77b2kphf7d2r1m0000gn/T/trustme-disposable-9g0dl_qj/Disposable.app: internal error in Code Signing subsystem
+Policy after: exit=0 assessments enabled
+No fixture was launched. Temporary files deleted.
