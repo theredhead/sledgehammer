@@ -1,0 +1,12 @@
+Gatekeeper before: assessments enabled
+Launch 1: Quarantined items before: 7
+Quarantined items after: 0
+Normal macOS launch succeeded; PID 62081
+Launch 1 marker: True
+Launch 2: Quarantined items before: 0
+Quarantined items after: 0
+Normal macOS launch succeeded; PID 62085
+Launch 2 marker: True
+Signature intact; unrelated attribute: preserved
+Gatekeeper after: assessments enabled
+PASS: production preparation and two normal launches. No separate override API, Settings navigation, or global policy change.

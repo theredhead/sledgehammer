@@ -14,8 +14,8 @@ final class DropView: NSView {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     var review: Review?
-    let details = NSTextField(wrappingLabelWithString: "Drop an app onto this utility’s icon in Finder or the Dock.\nYou can also drop an app into this window.")
-    let approve = NSButton(title: "Review removal…", target: nil, action: nil)
+    let details = NSTextField(wrappingLabelWithString: "Drop an app here, or onto this utility’s icon in Finder or the Dock without opening it first.")
+    let approve = NSButton(title: "Review app…", target: nil, action: nil)
     var busy = false
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
@@ -25,17 +25,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.title = "Trust me, I know what I’m doing"
         let drop = DropView(frame: window.contentView!.bounds); window.contentView = drop
         drop.onDrop = { [weak self] in self?.receive($0) }
-        let icon = NSTextField(labelWithString: "✋"); icon.font = .systemFont(ofSize: 46)
-        let heading = NSTextField(labelWithString: "Your app. Your decision."); heading.font = .systemFont(ofSize: 25, weight: .bold)
-        let subtitle = NSTextField(wrappingLabelWithString: "Drop onto this utility’s icon in Finder or the Dock.\nNo need to open it first. Dropping into this window works too.")
+        let heading = NSTextField(wrappingLabelWithString: "Trust me, I know what I’m doing"); heading.font = .systemFont(ofSize: 25, weight: .bold)
+        let subtitle = NSTextField(wrappingLabelWithString: "The catchphrase of Inspector Sledge Hammer in the 1980s TV series Sledge Hammer!")
         subtitle.textColor = .secondaryLabelColor
-        details.font = .monospacedSystemFont(ofSize: 12, weight: .regular); details.isSelectable = true
+        let appIcon = NSImageView()
+        appIcon.image = NSImage(named: NSImage.applicationIconName)
+        appIcon.imageScaling = .scaleProportionallyUpOrDown
+        appIcon.setAccessibilityLabel("Trust Me app icon")
+        NSLayoutConstraint.activate([appIcon.widthAnchor.constraint(equalToConstant: 64), appIcon.heightAnchor.constraint(equalToConstant: 64)])
+        let titleStack = NSStackView(views: [heading, subtitle])
+        titleStack.orientation = .vertical; titleStack.alignment = .leading; titleStack.spacing = 7
+        let header = NSStackView(views: [appIcon, titleStack])
+        header.orientation = .horizontal; header.alignment = .top; header.spacing = 16
+        details.font = .systemFont(ofSize: 13); details.isSelectable = true
         let choose = NSButton(title: "Choose an app…", target: self, action: #selector(pick))
         approve.target = self; approve.action = #selector(confirm); approve.isEnabled = false; approve.bezelStyle = .rounded
-        let footer = NSTextField(wrappingLabelWithString: "Not a malware scanner or a guarantee of trust. Nothing opens automatically. System-wide Gatekeeper settings stay unchanged."); footer.font = .systemFont(ofSize: 11); footer.textColor = .secondaryLabelColor
-        let stack = NSStackView(views: [icon, heading, subtitle, details, choose, approve, footer]); stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 18; stack.translatesAutoresizingMaskIntoConstraints = false
+        let footer = NSTextField(wrappingLabelWithString: "Removes download quarantine with your approval. Not a malware scanner or a guarantee of trust."); footer.font = .systemFont(ofSize: 11); footer.textColor = .secondaryLabelColor
+        let stack = NSStackView(views: [header, details, choose, approve, footer]); stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 18; stack.translatesAutoresizingMaskIntoConstraints = false
         drop.addSubview(stack)
-        NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: drop.leadingAnchor, constant: 32), stack.trailingAnchor.constraint(equalTo: drop.trailingAnchor, constant: -32), stack.topAnchor.constraint(equalTo: drop.topAnchor, constant: 28)])
+        NSLayoutConstraint.activate([header.widthAnchor.constraint(equalTo: stack.widthAnchor), heading.widthAnchor.constraint(equalTo: titleStack.widthAnchor), subtitle.widthAnchor.constraint(equalTo: titleStack.widthAnchor), stack.leadingAnchor.constraint(equalTo: drop.leadingAnchor, constant: 32), stack.trailingAnchor.constraint(equalTo: drop.trailingAnchor, constant: -32), stack.topAnchor.constraint(equalTo: drop.topAnchor, constant: 28)])
         window.center(); window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
     }
     func application(_ application: NSApplication, open urls: [URL]) { receive(urls) }
@@ -52,8 +60,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 switch result {
                 case .success(let value):
                     self.review = value
-                    self.details.stringValue = "\(value.name)\n\(value.url.path)\n\n\(value.signature)\n\nDownload quarantine: \(value.quarantine == nil ? "not present; nothing to remove" : "present")"
-                    self.approve.isEnabled = value.quarantine != nil
+                    self.details.stringValue = "\(value.name)\n\(value.url.path)\n\n\(value.signature)\n\nDownload quarantine: \(value.entries.isEmpty ? "not present; nothing to remove" : "present")"
+                    self.approve.isEnabled = true
+                    self.confirm()
                 case .failure(let error): self.details.stringValue = error.localizedDescription
                 }
                 self.window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
@@ -67,22 +76,62 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     @objc func confirm() {
         guard !busy, let selected = review else { return }
-        let alert = NSAlert(); alert.messageText = "Remove quarantine from \(selected.name)?"
-        alert.informativeText = "\(selected.url.path)\n\nYou are removing this app’s download warning metadata. This does not verify its safety or notarization, repair it, or guarantee macOS will allow it to open. Only continue if you trust its source.\n\nThe app will not be launched."
-        alert.alertStyle = .warning; alert.addButton(withTitle: "Cancel"); alert.addButton(withTitle: "Remove quarantine")
-        guard alert.runModal() == .alertSecondButtonReturn else { return }
+        let alert = NSAlert(); alert.messageText = "Review \(selected.name)"
+        alert.informativeText = "\(selected.url.path)\n\n\(selected.signature)\nDownload quarantine: \(selected.entries.isEmpty ? "not present" : "present")\n\nLift quarantine removes download warning metadata without opening the app.\n\nTrust this app removes quarantine where needed, then opens this app through macOS. Only choose it if you trust the app’s source and want to run it now."
+        alert.alertStyle = .warning; alert.addButton(withTitle: "Cancel"); let lift = alert.addButton(withTitle: "Lift quarantine"); lift.isEnabled = !selected.entries.isEmpty
+        alert.addButton(withTitle: "Trust this app")
+        let response = alert.runModal()
+        if response == .alertThirdButtonReturn { allowAndOpen(selected); return }
+        guard response == .alertSecondButtonReturn else { return }
         busy = true; approve.isEnabled = false; review = nil
         DispatchQueue.global(qos: .userInitiated).async {
             let result = Result { try Quarantine.approve(selected) }
             DispatchQueue.main.async {
                 self.busy = false
                 switch result {
-                case .success: self.details.stringValue = "Quarantine removed from \(selected.name).\n\(selected.url.path)\n\nThe app has not been opened. macOS may still block it."
+                case .success: self.details.stringValue = "Quarantine removed from \(selected.name).\n\(selected.url.path)\n\nQuarantine has been removed throughout this app. The app has not been opened."
                 case .failure(let error): self.details.stringValue = error.localizedDescription
                 }
             }
         }
     }
+
+    func allowAndOpen(_ selected: Review) {
+        busy = true; approve.isEnabled = false; review = nil
+        details.stringValue = "Preparing \(selected.name) to open…"
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = Result { try Quarantine.prepareToOpen(selected) }
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    self.busy = false
+                    self.details.stringValue = error.localizedDescription
+                case .success:
+                    self.details.stringValue = "Opening \(selected.name)…"
+                    let configuration = NSWorkspace.OpenConfiguration()
+                    configuration.promptsUserIfNeeded = true
+                    configuration.allowsRunningApplicationSubstitution = false
+                    configuration.addsToRecentItems = false
+                    NSWorkspace.shared.openApplication(at: selected.url, configuration: configuration) { running, error in
+                        DispatchQueue.main.async {
+                            self.busy = false
+                            if running != nil {
+                                self.details.stringValue = "\(selected.name) opened successfully.\n\(selected.url.path)\n\nYou can open this copy normally in Finder."
+                            } else {
+                                self.details.stringValue = "Quarantine is cleared, but macOS could not open \(selected.name).\n\n\(error?.localizedDescription ?? "The system did not return a running app.")"
+                                let failure = NSAlert()
+                                failure.messageText = "macOS could not open \(selected.name)"
+                                failure.informativeText = error?.localizedDescription ?? "The system did not return a running app."
+                                failure.addButton(withTitle: "OK")
+                                failure.runModal()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
 let app = NSApplication.shared
 let delegate = AppDelegate()

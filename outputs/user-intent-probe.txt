@@ -1,0 +1,3 @@
+Read last rejection: 1
+Last rejection matches our disposable app exactly.
+Native user-intent result: 1

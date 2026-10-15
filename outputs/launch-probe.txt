@@ -1,0 +1,5 @@
+/Users/kris/Documents/Codex/2026-10-15/trust-me/work/launch-probe/Quarantined.app: replacing existing signature
+Quarantined: open exit=0; launch marker=False; 
+/Users/kris/Documents/Codex/2026-10-15/trust-me/work/launch-probe/Cleared.app: replacing existing signature
+Cleared: open exit=0; launch marker=True; 
+Only our disposable, locally compiled fixture was submitted to LaunchServices.

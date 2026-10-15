@@ -1,0 +1,4 @@
+2026-10-15 20:46:11.442 native-override-probe[60830:4121638] Error Domain=SPErrorDomain Code=4 "(null)"
+Read last rejection: 1
+Last rejection matches our disposable app exactly.
+Native per-app override result: 0

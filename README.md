@@ -1,8 +1,14 @@
 # Trust me, I know what I’m doing
 
-A standalone native Swift/AppKit macOS prototype. Drop one app onto the utility’s icon in Finder or the Dock, or into its window. Inspect the path and signature status, then explicitly confirm removing the selected app’s outer download-quarantine attribute. The target app is never launched.
+A standalone native Swift/AppKit macOS prototype. Drop one app onto the utility’s icon in Finder or the Dock, or into its window. Inspect the selected app, then choose:
 
-This is a convenience tool, not a malware scanner, a trust endorsement, or a guarantee that macOS will open an app. It never changes global Gatekeeper policy, repairs or re-signs targets, requests administrator privileges, or clears other attributes.
+- **Lift quarantine**: remove download quarantine throughout that app without launching it. Disabled when no quarantine is present.
+- **Trust this app**: remove quarantine if present, then request a normal macOS launch. This is explicit approval to run that app now. It also works when quarantine is already clear.
+- **Cancel**: make no changes.
+
+Nothing launches merely because an app is dropped. This is a convenience tool, not a malware scanner or a guarantee of trust. It never changes global Gatekeeper policy, repairs or re-signs targets, requests administrator privileges, or clears unrelated attributes. The product does not call private override APIs or hand the user off to Settings.
+
+The complete workflow was tested on a fresh disposable, locally compiled AppKit fixture: seven quarantine attributes removed by the production code, two successful normal macOS launches verified by marker writes, signature intact, unrelated metadata preserved, Gatekeeper enabled before and after. No separate exception API was necessary for this fixture. This observation is not a guarantee for every app or macOS policy.
 
 ## Build and test
 
@@ -10,7 +16,7 @@ Requires macOS 13+ and Xcode command-line tools. Run `./scripts/build.sh`. The l
 
 ## Prototype limits
 
-Only intact signed apps (including ad hoc signed apps) with quarantine exclusively on the outer bundle are supported. Unsigned apps are refused because a destroyed signature can be reported as unsigned. Nested quarantine is refused without mutation. No recursive clearing is performed. Inspection skips symbolic links and rejects a symlinked selected path. Unreadable contents cause refusal.
+Only intact signed apps (including ad hoc signed apps) are supported. Quarantine on the app folder and its contents is handled in one approval. Unsigned apps are refused because a destroyed signature can be reported as unsigned. Traversal never follows symbolic links; quarantined hard-linked files are refused to avoid modifying files outside the selected app. All removal targets are opened and validated before writing. If removal or verification fails, the tool attempts to restore the original quarantine values and reports if restoration is incomplete. Inspection skips symbolic links and rejects a symlinked selected path. Unreadable contents cause refusal.
 
 Inspection repeats after confirmation and checks the bundle’s filesystem identity. Removal uses an open directory descriptor. This reduces accidental replacement risk but does not provide an atomic snapshot of a bundle against a malicious process concurrently modifying its contents. Further hardening and review are needed before public distribution.
 
@@ -18,7 +24,7 @@ The Dock/Finder document-open handler is declared for `com.apple.application-bun
 
 ## Research and observations
 
-See `outputs/behavior-check.txt` and `outputs/Prototype notes.md`. No downloaded or real user apps were modified, and no test app was launched. The five automated tests cover selected-only removal, preserving unrelated metadata, nested quarantine refusal, replacement refusal, symlink refusal, and damaged-signature refusal (some checks share one test).
+See `outputs/behavior-check.txt` and `outputs/Prototype notes.md`. No downloaded or real user apps were modified or launched. A separate LaunchServices probe launched only our own locally compiled harmless fixture after quarantine removal; the quarantined control did not produce a launch marker. Twelve automated tests cover recursive and nested-only removal, intact signatures after removal, preserving unrelated metadata and apps, hard-link protection, external symlink protection, replacement refusal, damaged signatures before and after review, quarantine restoration after a simulated partial failure, and preparing both quarantined and already-clear apps to open.
 
 ## Visual and distribution direction
 
