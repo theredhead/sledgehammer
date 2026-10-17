@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:trust-me}",
+            "name": "Debug TrustMe",
+            "target": "TrustMe",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug TrustMe"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:trust-me}",
+            "name": "Release TrustMe",
+            "target": "TrustMe",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release TrustMe"
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+# swift-format owns layout; SwiftLint checks a deliberately small set of problems.
+only_rules:
+  - duplicate_conditions
+  - duplicate_enum_cases
+  - duplicated_key_in_dictionary_literal
+  - force_cast
+  - force_try
+  - orphaned_doc_comment
+  - custom_rules
+  - unused_closure_parameter
+  - unused_optional_binding
+  - valid_ibinspectable
+  - vertical_whitespace_opening_braces
+included:
+  - Sources
+  - Tests
+  - scripts
+excluded:
+  - .build
+  - work
+  - outputs
+
+custom_rules:
+  detached_declaration_comment:
+    name: "Detached declaration comment"
+    regex: '(?m)^[ \t]*//[^\n]*(?:\n[ \t]*//[^\n]*)*\n[ \t]*\n(?:[ \t]*\n)*[ \t]*(?:(?:@objc|public|private|fileprivate|internal|package|open|final|static|class|override|required|convenience|mutating|nonmutating)[ \t]+)*(?:func|init|deinit|struct|class|enum|protocol)\b'
+    message: "Place declaration documentation directly above its declaration, with the separating blank line before the comment."
+    severity: error

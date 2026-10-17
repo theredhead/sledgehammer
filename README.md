@@ -14,6 +14,14 @@ The complete workflow was tested on a fresh disposable, locally compiled AppKit 
 
 Requires macOS 13+ and Xcode command-line tools. Run `./scripts/build.sh`. The local, ad hoc signed Apple Silicon app is written to `outputs/Trust Me.app` on the development host. Open `Package.swift` in Xcode to develop. For tests, run `CLANG_MODULE_CACHE_PATH="$PWD/work/cache" SWIFTPM_MODULECACHE_OVERRIDE="$PWD/work/cache" swift test --disable-sandbox`.
 
+## Code style
+
+Readability takes priority over compactness. The checked-in `.swift-format` uses four-space indentation, a 110-column target, one statement per line, and preserves useful existing line breaks. Methods are separated by blank lines. Explicit returns and straightforward loops are retained where written.
+
+Run `./scripts/format.sh` to format Swift sources, tests, scripts, and Package.swift. Run `./scripts/lint.sh` to check formatting and the selected SwiftLint rules without modifying files. The formatter comes from the selected Xcode toolchain (`xcrun swift-format`). Install SwiftLint with `brew install swiftlint`; version 0.65.1 was used for this pass.
+
+SwiftLint uses an explicit small rule list in `.swiftlint.yml`: duplicate conditions, duplicate cases and dictionary keys, forced casts and forced tries, unused closure parameters and optional bindings, IBInspectable validity, and extra whitespace immediately inside opening braces. Orphaned documentation and comments separated from their declarations by a blank line are also checked. Declaration documentation uses `///` immediately above its declaration, with the separating blank line before the documentation; implementation notes use `//` beside the statements they explain. Layout is primarily handled by swift-format. Naming, method-length, and complexity limits are not enforced in this first configuration; adjust the rules after reviewing the result.
+
 ## Prototype limits
 
 Only intact signed apps (including ad hoc signed apps) are supported. Quarantine on the app folder and its contents is handled in one approval. Unsigned apps are refused because a destroyed signature can be reported as unsigned. Traversal never follows symbolic links; quarantined hard-linked files are refused to avoid modifying files outside the selected app. All removal targets are opened and validated before writing. If removal or verification fails, the tool attempts to restore the original quarantine values and reports if restoration is incomplete. Inspection skips symbolic links and rejects a symlinked selected path. Unreadable contents cause refusal.

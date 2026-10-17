@@ -1,6 +1,10 @@
 import AppKit
+
 // This executable is solely a development harness for our disposable fixture.
-let expected = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("work/launch-probe/CombinedProbe.app").standardizedFileURL
+
+let expected = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(
+    "work/launch-probe/CombinedProbe.app"
+).standardizedFileURL
 let selected = URL(fileURLWithPath: CommandLine.arguments[1]).standardizedFileURL
 guard selected == expected else { fatalError("Only the named disposable fixture is allowed") }
 do {

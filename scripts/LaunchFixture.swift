@@ -1,4 +1,5 @@
 import AppKit
+
 final class Delegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let marker = Bundle.main.bundleURL.deletingPathExtension().appendingPathExtension("launched")
